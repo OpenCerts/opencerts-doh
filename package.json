@@ -1,0 +1,38 @@
+{
+  "name": "opencerts-doh",
+  "version": "1.0.0",
+  "description": "OpenCerts DNS TXT proxy endpoint",
+  "main": "serverless.ts",
+  "scripts": {
+    "test": "jest"
+  },
+  "engines": {
+    "node": ">=20.11.1"
+  },
+  "dependencies": {
+    "@govtechsg/dnsprove": "^2.8.0",
+    "@middy/core": "^3.4.0",
+    "tldts": "^6.1.41",
+    "zod": "^3.23.8"
+  },
+
+  "devDependencies": {
+    "@serverless/typescript": "^3.0.0",
+    "@types/aws-lambda": "^8.10.71",
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.16.2",
+    "esbuild": "^0.14.11",
+    "jest": "^29.7.0",
+    "prettier": "^3.3.3",
+    "serverless": "^3.0.0",
+    "serverless-domain-manager": "^7.4.0",
+    "serverless-esbuild": "^1.23.3",
+    "serverless-offline": "^13.7.0",
+    "ts-jest": "^29.2.5",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^3.9.0",
+    "typescript": "^5.5.4"
+  },
+  "author": "OpenCerts",
+  "license": "Apache-2.0"
+}
