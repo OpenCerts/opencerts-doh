@@ -1,3 +1,5 @@
 include:
   - project: '$CI_INCLUDE_PROJECT'
     file: '$CI_INCLUDE_FILE'
+variables:
+  SITE_BASE_PATH: ""
