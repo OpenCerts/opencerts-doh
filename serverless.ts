@@ -49,9 +49,10 @@ const serverlessConfiguration: AWS = {
       domainName: "dns.opencerts.io",
       basePath: "",
       stage: "${self:provider.stage}",
-      createRoute53Record: true,
       endpointType: "regional",
-      certificateName: "opencerts.io",
+      securityPolicy: "tls_1_2",
+      autoDomain: true,
+      createRoute53Record: false
     },
     "serverless-offline": {
       port: 3000,
