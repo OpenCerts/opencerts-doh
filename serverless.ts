@@ -23,12 +23,18 @@ const serverlessConfiguration: AWS = {
       AWS_NODEJS_CONNECTION_REUSE_ENABLED: "1",
       NODE_OPTIONS: "--enable-source-maps --stack-trace-limit=1000",
     },
+    deploymentBucket: {
+      name: "${self:custom.infra.deploymentBucket}"
+    },
   },
   functions: {
     resolve,
   },
   package: { individually: true },
   custom: {
+    infra: {
+      deploymentBucket: "${ssm:/trustdocs/${self:provider.stage}/deployment-bucket}"
+    },
     esbuild: {
       bundle: true,
       minify: false,
