@@ -4,6 +4,7 @@ import { queryDns, googleDnsResolver, cloudflareDnsResolver } from "@govtechsg/d
 import { formatJSONResponse } from "@libs/api-gateway";
 import { errorResponse, SchemaValidationError, validateSchema } from "@functions/resolve/helpers";
 import { dnsResultSchema, queryParamSchema } from "@functions/resolve/schemas";
+import { cors } from "@functions/resolve/cors";
 
 const resolve: APIGatewayProxyHandlerV2 = async (event) => {
   try {
@@ -28,4 +29,4 @@ const resolve: APIGatewayProxyHandlerV2 = async (event) => {
   }
 };
 
-export const main = middy(resolve);
+export const main = middy(resolve).use(cors);

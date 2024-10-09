@@ -9,7 +9,13 @@ describe("resolve handler test", () => {
     queryStringParameters: Record<string, string> | null,
   ): APIGatewayProxyEventV2 =>
     ({
-      queryStringParameters,
+      version: "2.0",
+      queryStringParameters: queryStringParameters,
+      requestContext: {
+        http: {
+          method: "GET",
+        },
+      },
     }) as APIGatewayProxyEventV2;
 
   const mockContext = {
@@ -38,7 +44,7 @@ describe("resolve handler test", () => {
     const result = await handler(mockEvent, mockContext);
 
     expect(queryDns).toHaveBeenCalledWith("opencerts.io", expect.any(Array));
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       statusCode: 200,
       body: JSON.stringify(mockQueryDnsResult),
     });
@@ -49,7 +55,7 @@ describe("resolve handler test", () => {
 
     const result = await handler(mockEvent, mockContext);
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       statusCode: 400,
       body: JSON.stringify({
         message: "Invalid parameters",
@@ -63,7 +69,7 @@ describe("resolve handler test", () => {
 
     const result = await handler(mockEvent, mockContext);
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       statusCode: 400,
       body: JSON.stringify({
         message: "Invalid parameters",
@@ -81,7 +87,7 @@ describe("resolve handler test", () => {
     const result = await handler(mockEvent, mockContext);
 
     expect(queryDns).toHaveBeenCalledWith("opencerts.io", expect.any(Array));
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       statusCode: 502,
       body: JSON.stringify({
         message: mockError.message,
@@ -108,6 +114,47 @@ describe("resolve handler test", () => {
     expect(queryDns).toHaveBeenCalledWith("opencerts.io", expect.any(Array));
     expect(result).toMatchObject({
       statusCode: 502,
+    });
+  });
+
+  describe("CORS headers", () => {
+    it("should include www.opencerts.io origin in the response", async () => {
+      const mockEvent = createMockEvent({ name: "opencerts.io" });
+      mockEvent.headers = { Origin: "https://www.opencerts.io" };
+
+      const result = await handler(mockEvent, mockContext);
+
+      expect(result).toMatchObject({
+        headers: {
+          "Access-Control-Allow-Origin": "https://www.opencerts.io",
+        },
+      });
+    });
+
+    it("should include dev.opencerts.io origin in the response", async () => {
+      const mockEvent = createMockEvent({ name: "opencerts.io" });
+      mockEvent.headers = { Origin: "https://dev.opencerts.io" };
+
+      const result = await handler(mockEvent, mockContext);
+
+      expect(result).toMatchObject({
+        headers: {
+          "Access-Control-Allow-Origin": "https://dev.opencerts.io",
+        },
+      });
+    });
+
+    it("should default origin to www.opencerts.io in the response", async () => {
+      const mockEvent = createMockEvent({ name: "opencerts.io" });
+      mockEvent.headers = { Origin: "https://www.not-opencerts.io" };
+
+      const result = await handler(mockEvent, mockContext);
+
+      expect(result).toMatchObject({
+        headers: {
+          "Access-Control-Allow-Origin": "https://www.opencerts.io",
+        },
+      });
     });
   });
 });
