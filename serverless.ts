@@ -12,7 +12,7 @@ const serverlessConfiguration: AWS = {
   ],
   provider: {
     name: "aws",
-    stackName: "trustdocs-${self:provider.stage}-doh",
+    stackName: "opencerts-${self:provider.stage}-doh",
     apiName: "${self:provider.stackName}",
     runtime: "nodejs20.x",
     region: "ap-southeast-1",
