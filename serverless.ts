@@ -12,12 +12,29 @@ const serverlessConfiguration: AWS = {
   ],
   provider: {
     name: "aws",
+    stackName: "trustdocs-${self:provider.stage}-doh",
+    apiName: "${self:provider.stackName}",
     runtime: "nodejs20.x",
     region: "ap-southeast-1",
     stage: "${opt:stage, 'dev'}",
     apiGateway: {
       minimumCompressionSize: 1024,
       shouldStartNameWithService: true,
+    },
+    vpc: {
+      securityGroupIds: ['${self:custom.infra.securityGroupIds}'],
+      subnetIds: "${self:custom.infra.subnetIds}" as unknown as string[]
+    },
+    logs: {
+      restApi: {
+        accessLogging: true,
+        executionLogging: true,
+        format: '{"id":"$context.requestId","extendedId":"$context.extendedRequestId","path":"$context.path","method":"$context.httpMethod","time":"$context.requestTime","source":"$context.identity.sourceIp","resourcePath":"$context.resourcePath","error":{"message":"$context.error.message","type":"$context.error.responseType","validation":"$context.error.validationErrorString"},"waf":{"response":"$context.wafResponseCode","error":"$context.waf.error","status":"$context.waf.status"},"response":{"latency":"$context.responseLatency","length":"$context.responseLength","status":"$context.status"}}',
+        level: 'ERROR',
+        fullExecutionData: false,
+        roleManagedExternally: true,
+        role: "${ssm:/trustdocs/${self:provider.stage}/cloudwatch-log-role-arn}"
+      }
     },
     environment: {
       AWS_NODEJS_CONNECTION_REUSE_ENABLED: "1",
@@ -33,7 +50,14 @@ const serverlessConfiguration: AWS = {
   package: { individually: true },
   custom: {
     infra: {
-      deploymentBucket: "${ssm:/trustdocs/${self:provider.stage}/deployment-bucket}"
+      deploymentBucket: "${ssm:/trustdocs/${self:provider.stage}/deployment-bucket}",
+      securityGroupIds: "${ssm:/trustdocs/${self:provider.stage}/security-group-ids}",
+      subnetIds: {
+        'Fn::Split': [
+          ',',
+          '${ssm:/trustdocs/${self:provider.stage}/subnet-ids}',
+        ],
+      },
     },
     esbuild: {
       bundle: true,
@@ -59,6 +83,10 @@ const serverlessConfiguration: AWS = {
       host: "localhost",
       stage: "dev",
     },
+    associateWaf: {
+      name: "${ssm:/trustdocs/${self:provider.stage}/wafv2-name}",
+      version: "V2"
+    }
   },
 };
 
