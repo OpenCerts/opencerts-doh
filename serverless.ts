@@ -33,7 +33,7 @@ const serverlessConfiguration: AWS = {
         level: 'ERROR',
         fullExecutionData: false,
         roleManagedExternally: true,
-        role: "${ssm:/${self:custom.project/${self:provider.stage}/cloudwatch-log-role-arn}"
+        role: "${ssm:/${self:custom.project}/${self:provider.stage}/cloudwatch-log-role-arn}"
       }
     },
     environment: {
@@ -51,12 +51,12 @@ const serverlessConfiguration: AWS = {
   custom: {
     project: "${env:PROJECT_NAME}",
     infra: {
-      deploymentBucket: "${ssm:/${self:custom.project/${self:provider.stage}/deployment-bucket}",
-      securityGroupIds: "${ssm:/${self:custom.project/${self:provider.stage}/security-group-ids}",
+      deploymentBucket: "${ssm:/${self:custom.project}/${self:provider.stage}/deployment-bucket}",
+      securityGroupIds: "${ssm:/${self:custom.project}/${self:provider.stage}/security-group-ids}",
       subnetIds: {
         'Fn::Split': [
           ',',
-          '${ssm:/${self:custom.project/${self:provider.stage}/subnet-ids}',
+          '${ssm:/${self:custom.project}/${self:provider.stage}/subnet-ids}',
         ],
       },
     },
@@ -85,7 +85,7 @@ const serverlessConfiguration: AWS = {
       stage: "dev",
     },
     associateWaf: {
-      name: "${ssm:/${self:custom.project/${self:provider.stage}/wafv2-name}",
+      name: "${ssm:/${self:custom.project}/${self:provider.stage}/wafv2-name}",
       version: "V2"
     }
   },
