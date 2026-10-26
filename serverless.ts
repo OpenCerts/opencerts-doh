@@ -14,7 +14,8 @@ const serverlessConfiguration: AWS = {
     name: "aws",
     stackName: "opencerts-doh-${self:provider.stage}",
     apiName: "${self:provider.stackName}",
-    runtime: "nodejs22.x",
+    // DXT-924: Serverless v3 schema/types stop at nodejs20.x, but CloudFormation accepts nodejs22.x
+    runtime: "nodejs22.x" as AWS["provider"]["runtime"],
     region: "ap-southeast-1",
     stage: "${opt:stage, 'dev'}",
     apiGateway: {

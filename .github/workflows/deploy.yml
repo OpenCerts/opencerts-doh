@@ -46,6 +46,8 @@ jobs:
       - name: Deploy with Serverless Framework
         env:
           PROJECT_NAME: opencerts-doh
+          # DXT-924: Serverless 3.39 cannot load the ESM serverless-offline plugin under Node 22's require(esm)
+          NODE_OPTIONS: --no-experimental-require-module
         run: |
           STAGE=${{ github.event.inputs.stage || 'prod' }}
           npx serverless deploy --stage $STAGE --verbose
