@@ -70,8 +70,12 @@ const serverlessConfiguration: AWS = {
       platform: "node",
       concurrency: 10,
     },
+    domains: {
+      prod: "dns.opencerts.io",
+      dev: "dns.dev.opencerts.io",
+    },
     customDomain: {
-      domainName: "dns.opencerts.io",
+      domainName: "${self:custom.domains.${self:provider.stage}}",
       basePath: "",
       stage: "${self:provider.stage}",
       endpointType: "regional",
@@ -84,10 +88,61 @@ const serverlessConfiguration: AWS = {
       host: "localhost",
       stage: "dev",
     },
-    associateWaf: {
-      name: "${ssm:/${self:custom.project}/${self:provider.stage}/wafv2-name}",
-      version: "V2"
-    }
+    // max requests per IP in any 5 minute window before WAF blocks the client
+    rateLimitPer5Min: "${env:RATE_LIMIT_PER_5_MIN, 300}",
+  },
+  resources: {
+    Resources: {
+      DohWebAcl: {
+        Type: "AWS::WAFv2::WebACL",
+        Properties: {
+          Name: "${self:provider.stackName}-web-acl",
+          Scope: "REGIONAL",
+          DefaultAction: { Allow: {} },
+          VisibilityConfig: {
+            SampledRequestsEnabled: true,
+            CloudWatchMetricsEnabled: true,
+            MetricName: "${self:provider.stackName}-web-acl",
+          },
+          Rules: [
+            {
+              Name: "RateLimitPerIp",
+              Priority: 0,
+              Action: { Block: {} },
+              Statement: {
+                RateBasedStatement: {
+                  Limit: "${self:custom.rateLimitPer5Min}",
+                  AggregateKeyType: "IP",
+                },
+              },
+              VisibilityConfig: {
+                SampledRequestsEnabled: true,
+                CloudWatchMetricsEnabled: true,
+                MetricName: "${self:provider.stackName}-rate-limit-per-ip",
+              },
+            },
+          ],
+        },
+      },
+      DohWebAclAssociation: {
+        Type: "AWS::WAFv2::WebACLAssociation",
+        // the stage only exists once the deployment has been created
+        DependsOn: ["ApiGatewayDeployment${sls:instanceId}"],
+        Properties: {
+          ResourceArn: {
+            "Fn::Join": [
+              "",
+              [
+                "arn:aws:apigateway:${self:provider.region}::/restapis/",
+                { Ref: "ApiGatewayRestApi" },
+                "/stages/${self:provider.stage}",
+              ],
+            ],
+          },
+          WebACLArn: { "Fn::GetAtt": ["DohWebAcl", "Arn"] },
+        },
+      },
+    },
   },
 };
 

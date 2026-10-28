@@ -1,19 +1,15 @@
 name: Deploy
 
 on:
-  push:
-    branches:
-      - imda
   workflow_dispatch:
     inputs:
       stage:
         description: 'Deployment stage'
         required: true
-        default: 'prod'
+        default: 'dev'
         type: choice
         options:
           - dev
-          - staging
           - prod
 
 jobs:
@@ -38,14 +34,15 @@ jobs:
       
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
+        # dev and prod are separate AWS accounts; dev uses the DEV_-prefixed secrets
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-access-key-id: ${{ github.event.inputs.stage == 'prod' && secrets.AWS_ACCESS_KEY_ID || secrets.DEV_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ github.event.inputs.stage == 'prod' && secrets.AWS_SECRET_ACCESS_KEY || secrets.DEV_AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
       
       - name: Deploy with Serverless Framework
         env:
           PROJECT_NAME: opencerts-doh
         run: |
-          STAGE=${{ github.event.inputs.stage || 'prod' }}
+          STAGE=${{ github.event.inputs.stage || 'dev' }}
           npx serverless deploy --stage $STAGE --verbose
